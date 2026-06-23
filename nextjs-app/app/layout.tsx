@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "ReelTruth - AI Influencer Product Evaluator",
   description: "Verify marketing claims on Instagram Reels instantly using Gemini 2.5 Flash and community critiques.",
@@ -23,12 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="bg-[#070510] text-white min-h-screen">
+      <body className="bg-[#070510] text-white min-h-screen font-sans">
         {children}
       </body>
     </html>

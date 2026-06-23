@@ -20,8 +20,8 @@ module.exports = {
         greenVerified: '#0dff92'
       },
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
-        mono: ['Space Grotesk', 'monospace']
+        sans: ['var(--font-outfit)', 'sans-serif'],
+        mono: ['var(--font-space-grotesk)', 'monospace']
       }
     },
   },

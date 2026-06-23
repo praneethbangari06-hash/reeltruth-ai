@@ -5,7 +5,7 @@
 body {
   background-color: #070510;
   color: #ffffff;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit), sans-serif;
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(158, 0, 255, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(0, 194, 255, 0.08) 0%, transparent 40%);
