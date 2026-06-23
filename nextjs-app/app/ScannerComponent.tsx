@@ -150,53 +150,74 @@ export default function Home() {
       return;
     }
 
-    // Trigger full local simulation loop
-    startSimulation(urlInput, screenshotBase64);
+    // Trigger full real API call
+    runRealAnalysis(urlInput, screenshotBase64);
   };
 
-  const startSimulation = (url: string, base64: string | null) => {
+  const runRealAnalysis = (url: string, base64: string | null) => {
     setPipelineState({
       status: "ExtractingMetadata",
-      logs: ["[INFO] Initializing standalone Next.js analytical engine...", "[INFO] Connecting to Gemini 2.5 Flash API..."]
+      logs: [
+        "[INFO] Initializing Real-Time analytical scan...",
+        "[INFO] Instagram Reel link payload and screenshot metadata registered.",
+        "[INFO] Connecting to Gemini 3.5 Flash API endpoint..."
+      ]
     });
 
-    const steps = [
-      { status: "ExtractingMetadata", log: "Bypassing anti-scraper limits. Parsing caption content...", delay: 1100 },
-      { status: "ExtractingMetadata", log: base64 ? "Successfully parsed screenshot overlay text via Gemini Vision OCR." : "No screenshot attached. Running standard captions extractor fallback.", delay: 1400 },
-      { status: "DetectingProduct", log: "Scanning caption signatures against index database... Product match found.", delay: 1050 },
-      { status: "AnalyzingReviews", log: "Executing bulk review query on YouTube API...", delay: 1500 },
-      { status: "Completed", log: "Success! Trust reports and scores populated. Cached locally.", delay: 1000 }
-    ];
+    fetch("/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, screenshotBase64: base64 })
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        const errText = await res.json().catch(() => ({}));
+        throw new Error(errText.error || `Server HTTP Error code ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      // Requirements rule 6: Log raw response in browser console
+      console.log("ReelTruth Raw API Response inside Browser Console:", data);
 
-    let currentStep = 0;
-    const executeStep = () => {
-      if (currentStep >= steps.length) {
-        // Complete build is produced
-        const customBrand = url.includes("boat") ? "Boat" : url.includes("portronics") ? "Portronics" : "Universal Tech";
-        const customProduct = url.includes("boat") ? "Airdopes 311 Pro" : url.includes("portronics") ? "Conch Type-C Earpiece" : "TWS Buds Pro";
-        const customModel = url.includes("boat") ? "AD-311" : url.includes("portronics") ? "PT-CONCH" : "TWS-V2";
-        
-        const finalReport = makeSimulatedReport(url, base64, customProduct, customBrand, customModel);
-        const updated = [finalReport, ...reports.filter(r => r.reelUrl !== url)];
+      if (data.success && data.report) {
+        setPipelineState(prev => ({
+          status: "Completed",
+          logs: [
+            ...prev.logs,
+            `[INFO] Successfully parsed and evaluated brand: ${data.report.brand}`,
+            `[INFO] Detected product: ${data.report.detectedProduct}`,
+            `[INFO] Match confidence: ${data.report.confidenceScore}%`,
+            "[INFO] Compiling fact check assertions, consumer pros/cons, and pricing deals...",
+            "[SUCCESS] API report payload compiled perfectly."
+          ]
+        }));
+
+        const finalReport = data.report;
+        const updated = [finalReport, ...reports.filter(r => r.reelUrl !== url && r.id !== finalReport.id)];
         setReports(updated);
         localStorage.setItem("reeltruth_reports", JSON.stringify(updated));
 
-        setPipelineState({ status: "Idle", logs: [] });
-        setActiveReportUrl(finalReport.id);
-        return;
+        setTimeout(() => {
+          setPipelineState({ status: "Idle", logs: [] });
+          setActiveReportUrl(finalReport.id);
+        }, 1200);
+      } else {
+        throw new Error("Missing correct report payload inside server response JSON.");
       }
-
-      const active = steps[currentStep];
+    })
+    .catch((err) => {
+      console.error("ReelTruth Analysis Pipeline Failed: ", err);
+      // Requirements rule 8: If Gemini fails, display actual error inside PWA
       setPipelineState(prev => ({
-        status: active.status as any,
-        logs: [...prev.logs, `[INFO] ${active.log}`]
+        status: "Error",
+        logs: [
+          ...prev.logs,
+          `[ERROR] Server execution failure: ${err.message}`
+        ]
       }));
-
-      currentStep++;
-      setTimeout(executeStep, active.delay);
-    };
-
-    setTimeout(executeStep, 500);
+      alert(`Verification analysis failed:\n${err.message}`);
+    });
   };
 
   const handleDeleteReport = (id: string, e: React.MouseEvent) => {
@@ -214,17 +235,57 @@ export default function Home() {
   const handleProductConfirm = (pName: string, brand: string, model: string) => {
     setPipelineState({
       status: "AnalyzingReviews",
-      logs: ["[INFO] Custom override confirmed.", "[INFO] Executing real-time reviews scan..."]
+      logs: [
+        "[INFO] Initiating Custom override sequence...",
+        "[INFO] Requesting updated Gemini verification with custom brand/model properties..."
+      ]
     });
 
-    setTimeout(() => {
-      const report = makeSimulatedReport(urlInput, screenshotBase64, pName, brand, model);
-      const updated = [report, ...reports.filter(r => r.reelUrl !== urlInput)];
-      setReports(updated);
-      localStorage.setItem("reeltruth_reports", JSON.stringify(updated));
-      setPipelineState({ status: "Idle", logs: [] });
-      setActiveReportUrl(report.id);
-    }, 1500);
+    // Make updated call with override context by including names in the request url
+    const customUrlSuffix = `${urlInput}?override=${encodeURIComponent(brand + ' ' + pName + ' ' + model)}`;
+
+    fetch("/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: customUrlSuffix, screenshotBase64 })
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        const errText = await res.json().catch(() => ({}));
+        throw new Error(errText.error || `Server HTTP override error ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("Raw Response for product override in Browser Console:", data);
+      if (data.success && data.report) {
+        setPipelineState(prev => ({
+          status: "Completed",
+          logs: [
+            ...prev.logs,
+            `[SUCCESS] Override verification complete. Got ${data.report.detectedProduct}.`
+          ]
+        }));
+        const finalReport = data.report;
+        const updated = [finalReport, ...reports.filter(r => r.reelUrl !== urlInput && r.id !== finalReport.id)];
+        setReports(updated);
+        localStorage.setItem("reeltruth_reports", JSON.stringify(updated));
+        setTimeout(() => {
+          setPipelineState({ status: "Idle", logs: [] });
+          setActiveReportUrl(finalReport.id);
+        }, 1000);
+      } else {
+        throw new Error("Missing correct report payload inside override response.");
+      }
+    })
+    .catch((err) => {
+      console.error("Override pipeline failed:", err);
+      setPipelineState(prev => ({
+        status: "Error",
+        logs: [...prev.logs, `[ERROR] Override failed: ${err.message}`]
+      }));
+      alert(`Product confirmation failed: ${err.message}`);
+    });
   };
 
   const handleReset = () => {
@@ -649,126 +710,6 @@ export default function Home() {
   );
 }
 
-// Mock database generator matching Web requirements
-function makeSimulatedReport(url: string, base64: string | null, customProduct: string, customBrand: string, customModel: string): ReelReport {
-  let brand = customBrand;
-  let name = customProduct;
-  let modelNumber = customModel;
-  let trust = 78;
-  let reality = 62;
-
-  if (url.includes("boat")) {
-    brand = "Boat";
-    name = "Airdopes 311 ANC";
-    modelNumber = "AD-311-B";
-    trust = 82;
-    reality = 70;
-  } else if (url.includes("portronics")) {
-    brand = "Portronics";
-    name = "Conch Theta-C wired";
-    modelNumber = "POR-CONCH";
-    trust = 65;
-    reality = 50;
-  }
-
-  return {
-    id: url,
-    reelUrl: url,
-    detectedProduct: name,
-    brand: brand,
-    model: modelNumber,
-    confidenceScore: 95,
-    reelRealityScore: reality,
-    productTrustScore: trust,
-    influencerName: "@TechLoverIn",
-    influencerTrustScore: 82,
-    influencerReviewedCount: 42,
-    influencerAccurateCount: 30,
-    strengths: [
-      "Excellent punchy soundstage for bass electronic music tracks.",
-      "Extremely affordable retail entry price options."
-    ],
-    weaknesses: [
-      "The treble is thin and screechy on high volumes.",
-      "Durability reports note typical wear problems after 3-4 months."
-    ],
-    claims: [
-      {
-        claim: "Features full 100% active noise blocking cancellation.",
-        reality: "The active isolation is very weak; barely filters background air conditioning exhaust pitches.",
-        isMisleading: true
-      },
-      {
-        claim: "Unmatched premium aluminum casing build.",
-        reality: "Reviews point out the main chassis utilizes lightweight silver-tinted plastic panels.",
-        isMisleading: true
-      }
-    ],
-    scamAlerts: [
-      "Flagging continuous fake listing discounts designed to elicit urgency."
-    ],
-    communityScore: 4.1,
-    amazonRating: 3.8,
-    redditSentiment: 3.5,
-    youtubeSentiment: 4.3,
-    alternatives: [
-      { name: "Realme Buds T110 Edition", score: 88, price: "₹1,299" },
-      { name: "Noise Buds VS104 ANC", score: 85, price: "₹1,199" }
-    ],
-    deals: [
-      { store: "Amazon.in", price: "₹999", url: "https://amazon.in", isCheapest: true },
-      { store: "Flipkart Store", price: "₹1,099", url: "https://flipkart.com", isCheapest: false }
-    ],
-    timestamp: Date.now()
-  };
-}
-
 function getMockReports(): ReelReport[] {
-  return [
-    {
-      id: "https://instagram.com/reel/boat_air_311",
-      reelUrl: "https://instagram.com/reel/boat_air_311",
-      detectedProduct: "Airdopes 311 Pro Buds",
-      brand: "Boat",
-      model: "AD-311-B",
-      confidenceScore: 95,
-      reelRealityScore: 68,
-      productTrustScore: 82,
-      influencerName: "@GadgetInsider",
-      influencerTrustScore: 78,
-      influencerReviewedCount: 65,
-      influencerAccurateCount: 48,
-      strengths: [
-        "Highly aesthetic transparent case window details",
-        "Responsive Type-C fast charging support",
-        "Deep custom bass profile signature"
-      ],
-      weaknesses: [
-        "Ineffective passive noise isolation fit",
-        "High distortion above 85% volumetric limits"
-      ],
-      claims: [
-        {
-          claim: "Crystal clear call performance on loud transit streets",
-          reality: "The microphone suppresses ambient hums but severely muffles vocal ranges.",
-          isMisleading: true
-        }
-      ],
-      scamAlerts: [
-        "Rating profiles show artificial review aggregates activity."
-      ],
-      communityScore: 4.1,
-      amazonRating: 4.1,
-      redditSentiment: 3.7,
-      youtubeSentiment: 4.3,
-      alternatives: [
-        { name: "Realme Buds T110", score: 88, price: "₹1,299" }
-      ],
-      deals: [
-        { store: "Amazon.in", price: "₹1,199", url: "https://amazon.in", isCheapest: true },
-        { store: "Flipkart", price: "₹1,299", url: "https://flipkart.com", isCheapest: false }
-      ],
-      timestamp: Date.now() - 3600000
-    }
-  ];
+  return [];
 }
