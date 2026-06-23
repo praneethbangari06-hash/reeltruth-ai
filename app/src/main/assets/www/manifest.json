@@ -1,0 +1,22 @@
+{
+  "name": "ReelTruth AI Evaluator",
+  "short_name": "ReelTruth",
+  "description": "AI-powered product verification analyzer for Instagram Reels influencer promotions.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#070510",
+  "theme_color": "#070510",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

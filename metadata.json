@@ -1,0 +1,6 @@
+{
+  "name": "ReelTruth",
+  "description": "AI-powered product verification analyzer for Instagram Reels influencer promotions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

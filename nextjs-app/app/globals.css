@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #070510;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(158, 0, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(0, 194, 255, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glass-panel {
+  background: rgba(16, 14, 33, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(44, 36, 86, 0.5);
+}
+
+.neon-shadow-purple {
+  box-shadow: 0 0 15px rgba(158, 0, 255, 0.25);
+}
+
+.neon-shadow-blue {
+  box-shadow: 0 0 15px rgba(0, 194, 255, 0.25);
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(158, 0, 255, 0.4); }
+  50% { border-color: rgba(0, 194, 255, 0.8); }
+}
+
+.pulsing-border {
+  animation: pulse-border 3s infinite;
+}
