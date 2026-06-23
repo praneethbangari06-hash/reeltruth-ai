@@ -48,6 +48,7 @@ interface ReelReport {
   detectedProduct: string;
   brand: string;
   model: string;
+  thumbnailUrl?: string;
   confidenceScore: number;
   reelRealityScore: number;
   productTrustScore: number;
